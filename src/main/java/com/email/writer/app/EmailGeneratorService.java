@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
-import java.util.Objects;
 
 @Service
 public class EmailGeneratorService {
@@ -18,30 +17,32 @@ public class EmailGeneratorService {
     @Value("${gemini.api.url}")
     private String geminiApiURL;
 
-    @Value("${gemini.api.api}")
+    @Value("${gemini.api.key}")
     private String geminiApiKey;
 
-    public EmailGeneratorService(WebClient webClient) {
-        this.webClient = webClient;
+    public EmailGeneratorService(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.build();
     }
 
-    public String generateEmailReply( Emailrequest emailrequest){
+    public String generateEmailReply( EmailRequest emailrequest){
         // build a prompt
         String prompt = buildPrompt(emailrequest);
 
         // craft a request
         Map<String , Object> requestBody = Map.of(
-                "Contents", new Object[]{
+                "contents", new Object[]{
                         Map.of("parts", new Object[]{
-                                Map.of("texts",prompt)
+                                Map.of("text",prompt)
                         })
                 }
         );
 
         // do request and get response
         String response  = webClient.post()
-                .uri(geminiApiURL + geminiApiKey )
-                .header("Content-Type","Application/json")
+                .uri(geminiApiURL)
+                .header("X-goog-api-key", geminiApiKey)
+                .header("Content-Type","application/json")
+                .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -66,7 +67,7 @@ public class EmailGeneratorService {
         }
     }
 
-    private String buildPrompt(Emailrequest emailrequest) {
+    private String buildPrompt(EmailRequest emailrequest) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("Generate professional email reply for the following email content. Don't generate subject line ");
         if(emailrequest.getTone() != null && !emailrequest.getTone().isEmpty()){
