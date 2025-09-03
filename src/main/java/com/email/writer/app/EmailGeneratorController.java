@@ -8,14 +8,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/email/")
+@RequestMapping("/api/email")
 @AllArgsConstructor
+
 public class EmailGeneratorController {
 
     private final EmailGeneratorService emailGeneratorService;
 
-    @PostMapping
-    public ResponseEntity<String> generateEmail(@RequestBody Emailrequest emailrequest ){
+    @PostMapping("/generate")
+    public ResponseEntity<String> generateEmail(@RequestBody EmailRequest emailrequest ){
         String response = emailGeneratorService.generateEmailReply(emailrequest);
         return ResponseEntity.ok(response);
 
